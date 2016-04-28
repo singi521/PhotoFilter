@@ -47,27 +47,27 @@ class PhotoEffect {
     
     class func oldFilmEffect(inputImage:CIImage) -> CIFilter {
         
-        // 1.创建CISepiaTone滤镜
+        // 1.創建CISepiaTone濾鏡
         let sepiaToneFilter = CIFilter(name: "CISepiaTone")!
         sepiaToneFilter.setValue(inputImage, forKey: kCIInputImageKey)
         sepiaToneFilter.setValue(1, forKey: kCIInputIntensityKey)
-        // 2.创建白班图滤镜
+        // 2.創建白色斑點濾鏡
         let whiteSpecksFilter = CIFilter(name: "CIColorMatrix")!
         whiteSpecksFilter.setValue(CIFilter(name: "CIRandomGenerator")!.outputImage!.imageByCroppingToRect(inputImage.extent), forKey: kCIInputImageKey)
         whiteSpecksFilter.setValue(CIVector(x: 0, y: 1, z: 0, w: 0), forKey: "inputRVector")
         whiteSpecksFilter.setValue(CIVector(x: 0, y: 1, z: 0, w: 0), forKey: "inputGVector")
         whiteSpecksFilter.setValue(CIVector(x: 0, y: 1, z: 0, w: 0), forKey: "inputBVector")
         whiteSpecksFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputBiasVector")
-        // 3.把CISepiaTone滤镜和白班图滤镜以源覆盖(source over)的方式先组合起来
+        // 3.把CISepiaTone濾鏡和白班圖濾鏡以源覆蓋（來源以上）的方式先組合起來
         let sourceOverCompositingFilter = CIFilter(name: "CISourceOverCompositing")!
         sourceOverCompositingFilter.setValue(whiteSpecksFilter.outputImage, forKey: kCIInputBackgroundImageKey)
         sourceOverCompositingFilter.setValue(sepiaToneFilter.outputImage, forKey: kCIInputImageKey)
-        // ---------上面算是完成了一半
-        // 4.用CIAffineTransform滤镜先对随机噪点图进行处理
+        
+        // 4.用CGAffineTransform濾鏡選對隨機噪點圖進行處理
         let affineTransformFilter = CIFilter(name: "CIAffineTransform")!
         affineTransformFilter.setValue(CIFilter(name: "CIRandomGenerator")!.outputImage!.imageByCroppingToRect(inputImage.extent), forKey: kCIInputImageKey)
         affineTransformFilter.setValue(NSValue(CGAffineTransform: CGAffineTransformMakeScale(1.5, 25)), forKey: kCIInputTransformKey)
-        // 5.创建蓝绿色磨砂图滤镜
+        // 5.創建藍綠色磨砂圖濾鏡
         let darkScratchesFilter = CIFilter(name: "CIColorMatrix")!
         darkScratchesFilter.setValue(affineTransformFilter.outputImage, forKey: kCIInputImageKey)
         darkScratchesFilter.setValue(CIVector(x: 4, y: 0, z: 0, w: 0), forKey: "inputRVector")
@@ -75,15 +75,16 @@ class PhotoEffect {
         darkScratchesFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputBVector")
         darkScratchesFilter.setValue(CIVector(x: 0, y: 0, z: 0, w: 0), forKey: "inputAVector")
         darkScratchesFilter.setValue(CIVector(x: 0, y: 1, z: 1, w: 1), forKey: "inputBiasVector")
-        // 6.用CIMinimumComponent滤镜把蓝绿色磨砂图滤镜处理成黑色磨砂图滤镜
+        // 6. 用CIMinimumComponent濾鏡把藍綠色磨砂圖濾鏡處理成黑色磨砂圖濾鏡
+        
         let minimumComponentFilter = CIFilter(name: "CIMinimumComponent")!
         minimumComponentFilter.setValue(darkScratchesFilter.outputImage, forKey: kCIInputImageKey)
-        // ---------上面算是基本完成了
-        // 7.最终组合在一起
+        // ---------完成
+        // 7.合併
         let multiplyCompositingFilter = CIFilter(name: "CIMultiplyCompositing")!
         multiplyCompositingFilter.setValue(minimumComponentFilter.outputImage, forKey: kCIInputBackgroundImageKey)
         multiplyCompositingFilter.setValue(sourceOverCompositingFilter.outputImage, forKey: kCIInputImageKey)
-        // 8.最后输出
+        // 8.輸出
         return multiplyCompositingFilter
     }
 }
